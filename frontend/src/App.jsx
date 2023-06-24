@@ -1,10 +1,37 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import "./Upload.css";
 import "./App.css";
+import axios from "axios";
 
 import uploadIcon from "./assets/uploadIcon.svg";
 
 function App() {
+  const [text, setText] = useState("");
+  const fileInput = useRef(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const handleClick = (e) => {
+    fileInput.current.click();
+  };
+  const handleFileSelect = (event) => {
+    setSelectedFile(event.target.files[0]);
+    console.log();
+  };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append("picture", selectedFile);
+    formData.append("text", text);
+    axios
+      .post("http://127.0.0.1:5000/", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((res) => {
+        document.getElementById("result").innerText = res.data;
+      })
+      .catch((err) => alert(err));
+  };
   return (
     <div class="bg-[#c8d9ed]">
       {/* navbar */}
@@ -70,30 +97,46 @@ function App() {
                 rows={10}
                 cols={50}
                 placeholder="Enter the text here.."
+                onChange={(e) => {
+                  setText(e.target.value);
+                }}
               />
             </div>
-            <div className="upload--img">
-              <img src={uploadIcon} alt="Upload Image of the structure" />
-              {/* <p>{selectedFile ? "Edit" : "Upload"} picture.</p>
-            {selectedFile && (
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                }}
-              >
-                File selected:<div>{selectedFile["name"]}</div>
+            <div className="upload--container" onClick={handleClick}>
+              <input
+                type="file"
+                style={{ display: "none" }}
+                ref={fileInput}
+                onChange={handleFileSelect}
+              />
+              <div className="upload--img">
+                <img src={uploadIcon} alt="Upload Image of the structure" />
+                <p>{selectedFile ? "Edit" : "Upload"} picture.</p>
+                {selectedFile && (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                    }}
+                  >
+                    File selected:<div>{selectedFile["name"]}</div>
+                  </div>
+                )}
               </div>
-            )} */}
             </div>
           </div>
-          <button class="mt-4 border-2 px-4 py-2 bg-[#4663ac] text-white">
+          <button
+            class="mt-4 border-2 px-4 py-2 bg-[#4663ac] text-white"
+            onClick={handleSubmit}
+          >
             Submit
           </button>
         </div>
 
-        <div>Result</div>
+        <div id="result" class="text-3xl">
+          Result
+        </div>
       </div>
     </div>
   );
